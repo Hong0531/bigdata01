@@ -1,7 +1,7 @@
 number = int(input())
 count = 0
 
-for i in range(2, number) :
+for i in range(0, number + i) :
     if number % i == 0:
         count = count + 1
     print(i, end=" ")
