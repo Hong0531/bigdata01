@@ -21,6 +21,26 @@ def apply_discount(price: int) -> float:
         return price * (1 - DISCOUTN_RATE)
     return price
 
+
+def get_ticket_number() -> int:
+    """
+    주문 번호표 처리 기능 함수
+    :return: 번호
+    """
+    number = 0
+    try:
+        with open("ticket.txt", "r") as fp:
+            number = number + int(fp.read())
+    except FileNotFoundError:
+        number = 0
+
+    number = number + 1
+
+    with open("ticket.txt", "w") as fp:
+        fp.write(str(number))
+
+    return number
+
 def order_process(idx: int) -> None:
     """
     주문 처리 함수 1) 주문 디스플레이  2) 총 주문 금액 누산  3) 주문 품목 수량 업데이트
@@ -63,6 +83,7 @@ def print_receipt() -> None:
         print(f"할인 적용 후 지불하실 총 금액은 {discounted_price}원 입니다.")
     else:
         print(f"할인이 적용되지 않았습니다.\n지불하실 총 금액은 {total_price}원 입니다.")
+
 
 def test() -> None:
     """
