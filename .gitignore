@@ -3,3 +3,5 @@ temp.py
 ticket.txt
 .venv1
 __pycache__/
+*.exe
+*.db
