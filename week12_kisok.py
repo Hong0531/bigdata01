@@ -1,4 +1,5 @@
-# from kiosk import *
+# ddl create (created_at field)
+# dml insert -> update
 import kiosk as kk
 
 if __name__ == "__main__":

@@ -1,17 +1,17 @@
-import datetime
+# import datetime
+from datetime import datetime
 import sqlite3
 
 drinks = ["아이스 아메리카노", "카페 라떼", "수박 주스", "딸기 주스"]
 prices = [1500, 2500, 4000, 4200]
-
 # drinks = ["아이스 아메리카노"]
 # prices = [1500]
-total_price = 0
 amounts = [0] * len(drinks)
+total_price = 0
 
 # 할인 적용 정책
-DISCOUNT_THRESEHOLD = 10000 # 할인이 적용되는 임계값 (임계값 이상이면 할인 적용)
-DISCOUTN_RATE = 0.1 # 할인율
+DISCOUNT_THRESHOLD = 10000  # 할인이 적용되는 임계값 (임계값 이상이면 할인 적용)
+DISCOUNT_RATE = 0.05  # 할인율
 
 def run() -> None:
     """
@@ -23,7 +23,7 @@ def run() -> None:
             menu = int(input(display_menu()))
             if len(drinks) >= menu >= 1:
                 order_process(menu - 1)
-            elif menu == len(drinks) + 1:
+            elif menu == len(drinks)+1:
                 print("주문을 종료합니다")
                 break
             else:
@@ -34,40 +34,42 @@ def run() -> None:
 
 def apply_discount(price: int) -> float:
     """
-    총 금액이 특정 금액(임계값)을 넘어서면 할인율 적용 함수
+    총 금액이 특정 금액(임계값)을 넘어서면 할인율을 적용하는 함수
     :param price: 할인 전 총 금액
-    :return: 할인이 적용된 금액
+    :return: 할인이 적용된 금액 또는 할인이 적용되지 않은 금액
     """
-    if price >= DISCOUNT_THRESEHOLD:
-        return price * (1 - DISCOUTN_RATE)
+    if price >= DISCOUNT_THRESHOLD:
+        return  price * (1 - DISCOUNT_RATE)
     return price
 
 
-def print_ticket_number() -> int:
+def print_ticket_number() -> None:
     """
     주문 번호표 출력 함수
     :return: None
     """
-    conn = sqlite3.connect('cafe.db')
+    conn = sqlite3.connect('cafe.db')  # db instance open
     cur = conn.cursor()
-
     cur.execute('''
         create table if not exists ticket (
         id integer primary key autoincrement,
-        number integer not null
+        number integer not null,
+        created_at text not null default (datetime('now', 'localtime'))
         )
     ''')
 
     cur.execute('select number from ticket order by number desc limit 1')
     result = cur.fetchone()
 
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     if result is None:
         number = 1
-        cur.execute('insert into ticket (number) values (?)', (number,))
+        cur.execute('insert into ticket (number, created_at) values (?, ?)', (number, now))
     else:
         number = result[0] + 1
-        # cur.execute('update ticket set number = (?)', (number,))
-        cur.execute('update ticket set number=? where id = (select id from ticket order by number desc limit 1)', (number))
+        # cur.execute('update ticket set number=? where id = (select id from ticket order by number desc limit 1)', (number,))
+        cur.execute('insert into ticket (number, created_at) values (?, ?)', (number, now))
+
     conn.commit()
     print(f"번호표 : {number}")
 
@@ -86,7 +88,7 @@ def order_process(idx: int) -> None:
 
 def display_menu() -> str:
     """
-    음료 선택 메뉴 디스플레이 기능
+    음료 선택 메뉴 디스플레이 함수
     :return: 음료 메뉴 및 주문 종료 문자열
     """
     print("="*30)
@@ -107,14 +109,14 @@ def print_receipt() -> None:
 
     discounted_price = apply_discount(total_price)
     discount = total_price - discounted_price
-    
+
     print(f"할인 전 총 주문 금액 : {total_price}원")
     if discount > 0:
-        print(f"할인 금액 : {discount}원 ({DISCOUTN_RATE*100}% 할인)")
+        print(f"할인 금액 : {discount}원 ({DISCOUNT_RATE*100}% 할인)")
         print(f"할인 적용 후 지불하실 총 금액은 {discounted_price}원 입니다.")
     else:
         print(f"할인이 적용되지 않았습니다.\n지불하실 총 금액은 {total_price}원 입니다.")
-    print(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 
 def test() -> None:
